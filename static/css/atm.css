@@ -1,0 +1,515 @@
+
+:root {
+    --atm-bg: #0a0e17;
+    --atm-text: #00ffcc;
+    --atm-text-dim: #00aa88;
+    --atm-error: #ff3333;
+    --atm-success: #00ffcc;
+    --machine-color: #2c313a;
+    --machine-dark: #1e2229;
+    --machine-light: #444b59;
+    --button-bg: #8892b0;
+    --button-shadow: #111;
+    --bezel-color: #111;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #1a1a24;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #fff;
+}
+
+.sound-toggle-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.5);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1000;
+}
+
+/* ATM Physical Machine */
+.atm-machine {
+    width: 100%;
+    max-width: 800px;
+    background: linear-gradient(135deg, var(--machine-color), var(--machine-dark));
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.1);
+    padding: 20px;
+    border: 2px solid var(--machine-light);
+    box-sizing: border-box;
+}
+
+.atm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: #000;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #333;
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.05);
+}
+
+.bank-logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #e0e0e0;
+    letter-spacing: 2px;
+}
+
+.logo-icon {
+    color: var(--atm-text);
+}
+
+.atm-id {
+    font-size: 14px;
+    color: #888;
+    font-family: monospace;
+}
+
+/* Screen Area */
+.atm-screen-bezel {
+    display: flex;
+    justify-content: space-between;
+    background: var(--bezel-color);
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    position: relative;
+}
+
+.atm-side-buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 40px 0;
+}
+
+.atm-btn-hardware {
+    width: 40px;
+    height: 30px;
+    background: linear-gradient(to bottom, #ccc, #888);
+    border: none;
+    border-radius: 4px;
+    box-shadow: 2px 2px 5px #000, inset 1px 1px 2px rgba(255,255,255,0.5);
+    cursor: pointer;
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    font-size: 10px;
+}
+.atm-btn-hardware:active {
+    background: #777;
+    box-shadow: 0px 0px 2px #000, inset 2px 2px 5px rgba(0,0,0,0.5);
+}
+
+.atm-screen-container {
+    flex-grow: 1;
+    margin: 0 15px;
+    background: #000;
+    border: 4px solid #222;
+    border-radius: 8px;
+    padding: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.atm-screen {
+    background: var(--atm-bg);
+    height: 400px;
+    width: 100%;
+    color: var(--atm-text);
+    font-family: 'Share Tech Mono', monospace;
+    position: relative;
+    box-shadow: inset 0 0 40px rgba(0, 255, 204, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Scanline effect */
+.atm-screen::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+    );
+    background-size: 100% 4px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.screen-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    font-size: 12px;
+    border-bottom: 1px solid rgba(0,255,204,0.2);
+    z-index: 3;
+}
+
+.screen-alerts {
+    padding: 10px;
+    z-index: 3;
+    position: absolute;
+    top: 40px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.alert {
+    padding: 8px;
+    margin-bottom: 5px;
+    border: 1px solid;
+    text-align: center;
+    background: rgba(0,0,0,0.8);
+}
+.alert-error { color: var(--atm-error); border-color: var(--atm-error); }
+.alert-success { color: var(--atm-success); border-color: var(--atm-success); }
+
+.screen-content {
+    flex-grow: 1;
+    padding: 15px;
+    z-index: 3;
+    position: relative;
+}
+
+/* UI Elements inside Screen */
+h2, h3 {
+    margin: 0 0 10px 0;
+    font-weight: normal;
+    text-shadow: 0 0 5px rgba(0,255,204,0.5);
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+.mt-1 { margin-top: 10px; }
+.mt-2 { margin-top: 20px; }
+.mt-4 { margin-top: 40px; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.text-small { font-size: 12px; color: var(--atm-text-dim); }
+
+.menu-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.menu-options {
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Matches hardware button spacing somewhat */
+    margin-top: 30px;
+}
+
+.menu-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.menu-btn {
+    background: transparent;
+    border: none;
+    color: var(--atm-text);
+    font-family: inherit;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    text-shadow: 0 0 2px rgba(0,255,204,0.5);
+}
+.menu-btn:hover { color: #fff; text-shadow: 0 0 5px #fff; }
+.menu-btn.l-btn { text-align: left; }
+.menu-btn.r-btn { text-align: right; }
+.menu-btn.center-btn { text-align: center; width: 100%; display: block; border: 1px solid var(--atm-text); padding: 5px; }
+
+.exit-btn, .cancel-btn { color: var(--atm-error); }
+.exit-btn:hover, .cancel-btn:hover { color: #ff8888; text-shadow: 0 0 5px #ff8888; }
+
+.atm-input {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--atm-text);
+    color: var(--atm-text);
+    font-family: inherit;
+    font-size: 18px;
+    padding: 10px;
+    width: 80%;
+    outline: none;
+}
+
+.amount-input-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+}
+.amount-input-container .currency { margin-right: 10px; }
+.amount-input-container input { width: 200px; font-size: 24px; }
+
+.pin-display { font-size: 32px; letter-spacing: 10px; }
+
+.blinking-text { animation: blink 1s step-end infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0,255,204,0.2);
+    border-top-color: var(--atm-text);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Lower Panel */
+.atm-lower-panel {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.atm-slots {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.slot-label {
+    font-size: 12px;
+    color: #aaa;
+    text-align: center;
+    margin-bottom: 5px;
+    font-family: sans-serif;
+    font-weight: bold;
+}
+
+.slot {
+    background: #000;
+    border: 2px solid #555;
+    border-radius: 4px;
+    height: 10px;
+    position: relative;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,1);
+    display: flex;
+    justify-content: center;
+}
+
+.slot-light {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 2px;
+    opacity: 0.5;
+    transition: all 0.3s;
+}
+
+.receipt-slot { height: 5px; width: 80%; margin: 0 auto; }
+.card-slot { height: 8px; width: 60%; margin: 0 auto; }
+.cash-slot { height: 15px; width: 80%; margin: 0 auto; }
+
+.cash-dispenser-container {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+/* Keypad */
+.atm-keypad {
+    background: #c0c4cc;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 5px 15px rgba(0,0,0,0.5);
+    border: 2px solid #a0a4ac;
+}
+
+.keys-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 50px);
+    gap: 10px;
+}
+
+.keys-grid button {
+    height: 40px;
+    border-radius: 4px;
+    border: none;
+    box-shadow: 0 4px #888, 0 5px 5px rgba(0,0,0,0.5);
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    background: linear-gradient(to bottom, #f0f0f0, #d0d0d0);
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.keys-grid button:active {
+    transform: translateY(4px);
+    box-shadow: 0 0px #888, 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.keys-grid button span { font-size: 8px; color: #666; margin-top: 2px; }
+
+.keys-grid .key-action { font-size: 12px; }
+.keys-grid .cancel { background: linear-gradient(to bottom, #ff4444, #cc0000); color: white; }
+.keys-grid .clear { background: linear-gradient(to bottom, #ffbb33, #ff8800); color: white; }
+.keys-grid .enter { background: linear-gradient(to bottom, #00C851, #007E33); color: white; }
+.keys-grid .key-empty { background: transparent; box-shadow: none; cursor: default; }
+
+/* Animations */
+.anim-insert-card {
+    height: 100px;
+    position: relative;
+    margin: 20px auto;
+    width: 60px;
+}
+.anim-card {
+    font-size: 40px;
+    position: absolute;
+    left: 10px;
+    top: 0;
+    animation: insertCard 2s infinite;
+}
+.anim-arrow {
+    position: absolute;
+    right: 0;
+    top: 20px;
+    color: var(--atm-text);
+    animation: bounce 1s infinite;
+}
+.anim-slot {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 5px;
+    background: #333;
+    border-top: 2px solid #555;
+}
+@keyframes insertCard {
+    0% { top: 0; opacity: 1; }
+    50% { top: 50px; opacity: 1; }
+    80% { top: 50px; opacity: 0; }
+    100% { top: 0; opacity: 0; }
+}
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+/* Hardware Slots visual feedback */
+.card-visual {
+    position: absolute;
+    top: -20px;
+    width: 40px;
+    height: 25px;
+    background: #0044cc;
+    border-radius: 2px;
+    transition: top 1s;
+    display: none;
+    z-index: 10;
+}
+.card-chip {
+    width: 8px;
+    height: 6px;
+    background: gold;
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    border-radius: 1px;
+}
+.cash-notes {
+    position: absolute;
+    top: -30px;
+    width: 90%;
+    height: 25px;
+    background: #85bb65;
+    border: 1px solid #000;
+    border-radius: 2px;
+    display: none;
+    transition: top 1s;
+    z-index: 10;
+}
+.receipt-paper {
+    position: absolute;
+    top: -30px;
+    width: 80%;
+    height: 40px;
+    background: #fff;
+    display: none;
+    transition: top 2s;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* Receipt formatting inside screen */
+.receipt-container {
+    background: #fff;
+    color: #000;
+    font-family: monospace;
+    padding: 15px;
+    width: 250px;
+    font-size: 12px;
+    text-shadow: none;
+    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+.receipt-container h3, .receipt-container p { margin: 2px 0; font-weight: normal; text-shadow:none; }
+.receipt-divider { margin: 5px 0; overflow: hidden; white-space: nowrap; }
+.r-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+.r-col { flex: 1; }
+.r-head { font-weight: bold; border-bottom: 1px dashed #000; padding-bottom: 2px; margin-bottom: 4px; }
+
+.atm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.atm-table th, .atm-table td {
+    padding: 5px;
+    border: 1px solid rgba(0,255,204,0.3);
+    text-align: left;
+}
+.atm-table th { background: rgba(0,255,204,0.1); }
+
+@media print {
+    body * { display: none !important; }
+    #receipt-content, #receipt-content * { display: block !important; }
+    #receipt-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .atm-machine { transform: scale(0.9); transform-origin: top center; border-radius: 10px; }
+    .atm-lower-panel { flex-direction: column; align-items: center; }
+    .atm-screen { height: 350px; }
+    .atm-slots, .cash-dispenser-container { width: 100%; }
+}

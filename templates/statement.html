@@ -1,30 +1,88 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="statement-box">
-    <h2>Mini Statement</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date & Time</th>
-                <th>Transaction Type</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for t in transactions %}
-            <tr>
-                <td>{{ t.timestamp }}</td>
-                <td>{{ t.type }}</td>
-                <td>${{ "%.2f"|format(t.amount) }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="3">No transactions found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <br>
-    <a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+<div id="statement-flow">
+    <!-- View Statement -->
+    <div id="screen-view" class="atm-transaction-screen active">
+        <h2 class="text-center">MINI STATEMENT</h2>
+        <div class="receipt-container mx-auto mt-2" id="receipt-content">
+            <div class="receipt-header text-center">
+                <h3>NEXUS BANK</h3>
+                <p>ATM MINI STATEMENT</p>
+                <p>ATM ID: ATM-001</p>
+                <p>DATE: <span class="receipt-date"></span></p>
+            </div>
+            <div class="receipt-divider">--------------------------------</div>
+            <div class="receipt-table">
+                <div class="r-row r-head">
+                    <div class="r-col">DATE</div>
+                    <div class="r-col">TYPE</div>
+                    <div class="r-col text-right">AMOUNT</div>
+                </div>
+                <div class="receipt-divider">--------------------------------</div>
+                {% for t in transactions %}
+                <div class="r-row">
+                    <div class="r-col text-small">{{ t.timestamp.split(' ')[0] if t.timestamp else '' }}</div>
+                    <div class="r-col text-small">{{ t.type }}</div>
+                    <div class="r-col text-right text-small">
+                        {% if 'Withdrawal' in t.type or 'Transfer to' in t.type %}
+                            -₹{{ "{:,.2f}".format(t.amount) }}
+                        {% else %}
+                            +₹{{ "{:,.2f}".format(t.amount) }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="r-row"><div class="r-col text-center" style="width: 100%;">No recent transactions</div></div>
+                {% endfor %}
+            </div>
+            <div class="receipt-divider">--------------------------------</div>
+            <div class="text-center mt-2">
+                <p>THANK YOU FOR BANKING</p>
+                <p>WITH NEXUS BANK</p>
+            </div>
+        </div>
+
+        <div class="menu-options mt-4" style="position: absolute; bottom: 20px; width: 100%;">
+            <div class="menu-row" style="justify-content: space-between; padding: 0 20px;">
+                <a href="{{ url_for('dashboard') }}" class="menu-btn l-btn cancel-btn">[ RETURN TO MENU ]</a>
+                <button class="menu-btn r-btn" onclick="printReceipt()">[ PRINT RECEIPT ]</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Printing -->
+    <div id="screen-printing" class="atm-transaction-screen text-center" style="display:none;">
+        <div class="spinner mt-4"></div>
+        <h2 class="mt-4 blinking-text">PRINTING RECEIPT...</h2>
+        <p>Please take your receipt below</p>
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelector('.receipt-date').innerText = new Date().toLocaleDateString();
+
+    function printReceipt() {
+        atmSound('print');
+        document.getElementById('screen-view').style.display = 'none';
+        document.getElementById('screen-printing').style.display = 'block';
+        
+        // Hardware animation
+        const receiptLight = document.getElementById('receipt-slot').querySelector('.receipt-paper');
+        if(receiptLight) {
+            receiptLight.style.display = 'block';
+            setTimeout(() => {
+                receiptLight.style.top = '10px';
+            }, 500);
+        }
+
+        setTimeout(() => {
+            window.print();
+            setTimeout(() => {
+                window.location.href = "{{ url_for('dashboard') }}";
+            }, 1000);
+        }, 2000);
+    }
+</script>
 {% endblock %}

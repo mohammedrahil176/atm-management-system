@@ -1,27 +1,39 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="admin-dashboard">
-    <h2>Admin Panel</h2>
-    <h3>All Users</h3>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Card Number</th>
-                <th>Balance</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for u in users %}
-            <tr>
-                <td>{{ u.id }}</td>
-                <td>{{ u.name }}</td>
-                <td>{{ u.card_number }}</td>
-                <td>${{ "%.2f"|format(u.balance) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="atm-transaction-screen admin-screen" style="overflow-y: auto;">
+    <h2 class="text-center">ADMINISTRATION CONSOLE</h2>
+    <div class="mt-2 text-center">
+        <p>SYSTEM STATUS: <span style="color:var(--atm-success);">ONLINE</span></p>
+    </div>
+    
+    <div class="mt-4">
+        <h3>REGISTERED USERS</h3>
+        <table class="atm-table mt-2">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>NAME</th>
+                    <th>CARD NUMBER</th>
+                    <th>BALANCE</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>**** {{ user.card_number[-4:] if user.card_number|length >= 4 else user.card_number }}</td>
+                    <td>₹{{ "{:,.2f}".format(user.balance) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="menu-options mt-4" style="position: sticky; bottom: 0; background: var(--atm-bg); padding: 10px 0;">
+        <div class="menu-row exit-row" style="justify-content: flex-end;">
+            <a href="javascript:void(0)" onclick="atmLogout()" class="menu-btn r-btn exit-btn">[ SECURE LOGOUT ]</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

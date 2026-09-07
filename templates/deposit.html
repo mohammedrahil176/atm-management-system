@@ -1,14 +1,88 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="form-box">
-    <h2>Cash Deposit</h2>
-    <form method="POST">
-        <div class="form-group">
-            <label>Amount ($)</label>
-            <input type="number" step="0.01" name="amount" min="1" required>
+<div id="deposit-flow">
+    <!-- Screen 1: Enter Amount (Simulating Cash Insertion) -->
+    <div id="screen-input" class="atm-transaction-screen text-center active">
+        <h2>CASH DEPOSIT</h2>
+        <p>Please enter the amount you are depositing</p>
+        <p class="text-small mt-1">(Simulation of cash counting)</p>
+        <div class="mt-4">
+            <div class="amount-input-container">
+                <span class="currency">₹</span>
+                <input type="text" id="deposit-amount-input" class="atm-input text-right" readonly value="0">
+            </div>
         </div>
-        <button type="submit" class="btn">Deposit</button>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
-    </form>
+        <div class="menu-options mt-4" style="position: absolute; bottom: 20px; width: 100%;">
+            <div class="menu-row" style="justify-content: space-between; padding: 0 20px;">
+                <a href="{{ url_for('dashboard') }}" class="menu-btn l-btn cancel-btn">[ CANCEL ]</a>
+                <button class="menu-btn r-btn" onclick="submitDeposit()">[ INSERT CASH ]</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Screen 2: Processing -->
+    <div id="screen-processing" class="atm-transaction-screen text-center" style="display:none;">
+        <div class="spinner mt-4"></div>
+        <h2 class="mt-4 blinking-text">COUNTING CASH...</h2>
+        <p>Please wait</p>
+    </div>
 </div>
+
+<form id="deposit-form" method="POST" action="{{ url_for('deposit') }}" style="display:none;">
+    <input type="hidden" name="amount" id="hidden_amount">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let depositAmount = "0";
+
+    window.addEventListener('atm-key', (e) => {
+        const val = e.detail.key;
+        if(/[0-9]/.test(val)) {
+            if(depositAmount === "0") depositAmount = val;
+            else if(depositAmount.length < 6) depositAmount += val;
+            updateDepositAmount();
+        } else if (val === 'CLEAR') {
+            depositAmount = "0";
+            updateDepositAmount();
+        } else if (val === 'CANCEL') {
+            window.location.href = "{{ url_for('dashboard') }}";
+        } else if (val === 'ENTER') {
+            submitDeposit();
+        }
+    });
+
+    function updateDepositAmount() {
+        document.getElementById('deposit-amount-input').value = depositAmount;
+    }
+
+    function submitDeposit() {
+        const amt = parseInt(depositAmount);
+        if(amt > 0) {
+            atmSound('processing');
+            document.getElementById('screen-input').style.display = 'none';
+            document.getElementById('screen-processing').style.display = 'block';
+            
+            document.getElementById('hidden_amount').value = amt;
+            
+            // Simulate cash slot taking cash
+            const dispenser = document.getElementById('cash-slot-light');
+            if(dispenser) {
+                dispenser.style.background = '#ffaa00';
+                dispenser.style.boxShadow = '0 0 10px #ffaa00';
+                setTimeout(()=> {
+                    dispenser.style.background = '#333';
+                    dispenser.style.boxShadow = 'none';
+                }, 2000);
+            }
+
+            setTimeout(() => {
+                document.getElementById('deposit-form').submit();
+            }, 3000);
+        } else {
+            atmSound('error');
+        }
+    }
+</script>
 {% endblock %}

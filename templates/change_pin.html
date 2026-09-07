@@ -1,22 +1,151 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="form-box">
-    <h2>Change PIN</h2>
-    <form method="POST">
-        <div class="form-group">
-            <label>Current PIN</label>
-            <input type="password" name="old_pin" required>
+<div id="pin-flow">
+    <!-- Step 1: Old PIN -->
+    <div id="step-old" class="atm-transaction-screen text-center active">
+        <h2>CHANGE PIN</h2>
+        <p>ENTER CURRENT PIN</p>
+        <div class="pin-display mt-4">
+            <span class="pin-dot" id="old-dot-1">_</span>
+            <span class="pin-dot" id="old-dot-2">_</span>
+            <span class="pin-dot" id="old-dot-3">_</span>
+            <span class="pin-dot" id="old-dot-4">_</span>
         </div>
-        <div class="form-group">
-            <label>New PIN</label>
-            <input type="password" name="new_pin" required>
+        <div class="menu-options mt-4" style="position: absolute; bottom: 20px; width: 100%;">
+            <div class="menu-row" style="justify-content: space-between; padding: 0 20px;">
+                <a href="{{ url_for('dashboard') }}" class="menu-btn l-btn cancel-btn">[ CANCEL ]</a>
+                <button class="menu-btn r-btn" onclick="nextPinStep('new')">[ CONTINUE ]</button>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Confirm New PIN</label>
-            <input type="password" name="confirm_pin" required>
+    </div>
+
+    <!-- Step 2: New PIN -->
+    <div id="step-new" class="atm-transaction-screen text-center" style="display:none;">
+        <h2>CHANGE PIN</h2>
+        <p>ENTER NEW PIN</p>
+        <div class="pin-display mt-4">
+            <span class="pin-dot" id="new-dot-1">_</span>
+            <span class="pin-dot" id="new-dot-2">_</span>
+            <span class="pin-dot" id="new-dot-3">_</span>
+            <span class="pin-dot" id="new-dot-4">_</span>
         </div>
-        <button type="submit" class="btn">Change PIN</button>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
-    </form>
+        <div class="menu-options mt-4" style="position: absolute; bottom: 20px; width: 100%;">
+            <div class="menu-row" style="justify-content: space-between; padding: 0 20px;">
+                <button class="menu-btn l-btn cancel-btn" onclick="nextPinStep('old')">[ BACK ]</button>
+                <button class="menu-btn r-btn" onclick="nextPinStep('confirm')">[ CONTINUE ]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Confirm PIN -->
+    <div id="step-confirm" class="atm-transaction-screen text-center" style="display:none;">
+        <h2>CHANGE PIN</h2>
+        <p>CONFIRM NEW PIN</p>
+        <div class="pin-display mt-4">
+            <span class="pin-dot" id="confirm-dot-1">_</span>
+            <span class="pin-dot" id="confirm-dot-2">_</span>
+            <span class="pin-dot" id="confirm-dot-3">_</span>
+            <span class="pin-dot" id="confirm-dot-4">_</span>
+        </div>
+        <div class="menu-options mt-4" style="position: absolute; bottom: 20px; width: 100%;">
+            <div class="menu-row" style="justify-content: space-between; padding: 0 20px;">
+                <button class="menu-btn l-btn cancel-btn" onclick="nextPinStep('new')">[ BACK ]</button>
+                <button class="menu-btn r-btn" onclick="submitPinChange()">[ SUBMIT ]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing -->
+    <div id="step-processing" class="atm-transaction-screen text-center" style="display:none;">
+        <div class="spinner mt-4"></div>
+        <h2 class="mt-4 blinking-text">UPDATING PIN...</h2>
+    </div>
 </div>
+
+<form id="pin-form" method="POST" action="{{ url_for('change_pin') }}" style="display:none;">
+    <input type="hidden" name="old_pin" id="hidden_old_pin">
+    <input type="hidden" name="new_pin" id="hidden_new_pin">
+    <input type="hidden" name="confirm_pin" id="hidden_confirm_pin">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentStep = 'old';
+    let oldPin = '';
+    let newPin = '';
+    let confirmPin = '';
+
+    window.addEventListener('atm-key', (e) => {
+        const val = e.detail.key;
+        let activePin = '';
+        if(currentStep === 'old') activePin = oldPin;
+        else if(currentStep === 'new') activePin = newPin;
+        else if(currentStep === 'confirm') activePin = confirmPin;
+
+        if(/[0-9]/.test(val)) {
+            if(activePin.length < 4) activePin += val;
+        } else if (val === 'CLEAR') {
+            activePin = '';
+        } else if (val === 'CANCEL') {
+            if(currentStep === 'old') window.location.href = "{{ url_for('dashboard') }}";
+            else if(currentStep === 'new') nextPinStep('old');
+            else if(currentStep === 'confirm') nextPinStep('new');
+            return;
+        } else if (val === 'ENTER') {
+            if(currentStep === 'old') nextPinStep('new');
+            else if(currentStep === 'new') nextPinStep('confirm');
+            else if(currentStep === 'confirm') submitPinChange();
+            return;
+        }
+
+        if(currentStep === 'old') oldPin = activePin;
+        else if(currentStep === 'new') newPin = activePin;
+        else if(currentStep === 'confirm') confirmPin = activePin;
+        
+        updatePinDots();
+    });
+
+    function updatePinDots() {
+        for(let i=1; i<=4; i++) {
+            document.getElementById('old-dot-'+i).innerText = i <= oldPin.length ? '●' : '_';
+            document.getElementById('new-dot-'+i).innerText = i <= newPin.length ? '●' : '_';
+            document.getElementById('confirm-dot-'+i).innerText = i <= confirmPin.length ? '●' : '_';
+        }
+    }
+
+    function nextPinStep(step) {
+        atmSound('beep');
+        document.getElementById('step-old').style.display = 'none';
+        document.getElementById('step-new').style.display = 'none';
+        document.getElementById('step-confirm').style.display = 'none';
+        document.getElementById('step-' + step).style.display = 'block';
+        currentStep = step;
+    }
+
+    function submitPinChange() {
+        if(newPin !== confirmPin) {
+            atmSound('error');
+            alert("New PINs do not match");
+            nextPinStep('new');
+            return;
+        }
+        if(oldPin.length < 4 || newPin.length < 4) {
+            atmSound('error');
+            return;
+        }
+        
+        atmSound('processing');
+        document.getElementById('step-confirm').style.display = 'none';
+        document.getElementById('step-processing').style.display = 'block';
+        
+        document.getElementById('hidden_old_pin').value = oldPin;
+        document.getElementById('hidden_new_pin').value = newPin;
+        document.getElementById('hidden_confirm_pin').value = confirmPin;
+        
+        setTimeout(() => {
+            document.getElementById('pin-form').submit();
+        }, 1500);
+    }
+</script>
 {% endblock %}

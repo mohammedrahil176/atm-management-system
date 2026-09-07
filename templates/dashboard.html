@@ -1,14 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="dashboard">
-    <h2>Welcome, {{ session.name }}</h2>
-    <div class="grid">
-        <a href="{{ url_for('balance') }}" class="card">Balance Inquiry</a>
-        <a href="{{ url_for('withdraw') }}" class="card">Cash Withdrawal</a>
-        <a href="{{ url_for('deposit') }}" class="card">Cash Deposit</a>
-        <a href="{{ url_for('transfer') }}" class="card">Money Transfer</a>
-        <a href="{{ url_for('statement') }}" class="card">Mini Statement</a>
-        <a href="{{ url_for('change_pin') }}" class="card">Change PIN</a>
+<div class="atm-menu-screen">
+    <div class="header-info">
+        <div class="user-greeting">Welcome, {{ session.get('name') }}</div>
+        <div class="instruction">Please select a transaction</div>
+    </div>
+    
+    <div class="menu-options">
+        <div class="menu-row">
+            <a href="{{ url_for('withdraw') }}" class="menu-btn l-btn">[ CASH WITHDRAWAL ]</a>
+            <a href="{{ url_for('deposit') }}" class="menu-btn r-btn">[ CASH DEPOSIT ]</a>
+        </div>
+        <div class="menu-row">
+            <a href="{{ url_for('balance') }}" class="menu-btn l-btn">[ BALANCE INQUIRY ]</a>
+            <a href="{{ url_for('statement') }}" class="menu-btn r-btn">[ MINI STATEMENT ]</a>
+        </div>
+        <div class="menu-row">
+            <a href="{{ url_for('transfer') }}" class="menu-btn l-btn">[ MONEY TRANSFER ]</a>
+            <a href="{{ url_for('change_pin') }}" class="menu-btn r-btn">[ CHANGE PIN ]</a>
+        </div>
+        <div class="menu-row exit-row">
+            <a href="javascript:void(0)" onclick="atmLogout()" class="menu-btn r-btn exit-btn">[ EXIT / RETURN CARD ]</a>
+        </div>
     </div>
 </div>
 {% endblock %}

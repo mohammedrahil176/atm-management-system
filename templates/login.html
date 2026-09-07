@@ -1,17 +1,169 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="login-box">
-    <h2>Welcome to ATM</h2>
-    <form method="POST" action="{{ url_for('login') }}">
-        <div class="form-group">
-            <label>Card Number</label>
-            <input type="text" name="card_number" required pattern="[0-9a-zA-Z]+" title="Alphanumeric card number">
+<div id="login-flow">
+    <!-- Screen 1: Insert Card -->
+    <div id="screen-insert-card" class="flow-screen active text-center">
+        <h2>WELCOME TO NEXUS BANK</h2>
+        <div class="anim-insert-card">
+            <div class="anim-card">💳</div>
+            <div class="anim-arrow">↓</div>
+            <div class="anim-slot"></div>
         </div>
-        <div class="form-group">
-            <label>PIN</label>
-            <input type="password" name="pin" required>
+        <p class="blinking-text mt-2">PLEASE INSERT YOUR CARD</p>
+        <div class="menu-grid mt-4">
+            <button class="menu-btn l-btn" onclick="simulateCardInsert('1234567890123456')">DEMO USER CARD</button>
+            <button class="menu-btn r-btn" onclick="simulateCardInsert('admin')">ADMIN CARD</button>
         </div>
-        <button type="submit" class="btn">Login</button>
-    </form>
+        <div class="mt-4">
+            <p>Or use keypad to enter custom card number:</p>
+            <input type="text" id="manual-card-input" class="atm-input text-center" placeholder="ENTER CARD NUMBER" readonly>
+            <button class="menu-btn center-btn mt-2" onclick="submitManualCard()">PROCEED</button>
+        </div>
+    </div>
+
+    <!-- Screen 2: Enter PIN -->
+    <div id="screen-enter-pin" class="flow-screen text-center" style="display:none;">
+        <h2>ENTER YOUR PIN</h2>
+        <p class="mt-2" id="display-card-number">CARD: **** **** **** 3456</p>
+        <div class="pin-display mt-4">
+            <span class="pin-dot" id="pin-dot-1">_</span>
+            <span class="pin-dot" id="pin-dot-2">_</span>
+            <span class="pin-dot" id="pin-dot-3">_</span>
+            <span class="pin-dot" id="pin-dot-4">_</span>
+        </div>
+        <p class="mt-4 text-small">Press ENTER when done</p>
+        <p class="mt-1 text-small">Press CANCEL to eject card</p>
+    </div>
+
+    <!-- Screen 3: Processing -->
+    <div id="screen-authenticating" class="flow-screen text-center" style="display:none;">
+        <div class="spinner mt-4"></div>
+        <h2 class="mt-4 blinking-text">AUTHENTICATING...</h2>
+        <p>Please wait while we securely process your credentials</p>
+    </div>
 </div>
+
+<form id="login-form" method="POST" action="{{ url_for('login') }}" style="display:none;">
+    <input type="hidden" name="card_number" id="hidden_card_number">
+    <input type="hidden" name="pin" id="hidden_pin">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Login specific JS
+    let currentStep = 'card';
+    let cardNumber = '';
+    let pin = '';
+    
+    // Bind to ATM global keypad
+    window.addEventListener('atm-key', (e) => {
+        const val = e.detail.key;
+        if(currentStep === 'card') {
+            if(/[0-9]/.test(val)) {
+                if(cardNumber.length < 16) {
+                    cardNumber += val;
+                    document.getElementById('manual-card-input').value = cardNumber;
+                }
+            } else if (val === 'CLEAR') {
+                cardNumber = '';
+                document.getElementById('manual-card-input').value = cardNumber;
+            } else if (val === 'CANCEL') {
+                cardNumber = '';
+                document.getElementById('manual-card-input').value = cardNumber;
+            }
+        }
+        else if (currentStep === 'pin') {
+            if(/[0-9]/.test(val)) {
+                if(pin.length < 4) {
+                    pin += val;
+                    updatePinDisplay();
+                }
+            } else if (val === 'CLEAR') {
+                pin = '';
+                updatePinDisplay();
+            } else if (val === 'CANCEL') {
+                resetLogin();
+            } else if (val === 'ENTER') {
+                if(pin.length > 0) {
+                    submitLogin();
+                }
+            }
+        }
+    });
+
+    function submitManualCard() {
+        if(cardNumber.length > 0) simulateCardInsert(cardNumber);
+    }
+
+    function simulateCardInsert(card) {
+        atmSound('beep');
+        cardNumber = card;
+        
+        // Trigger hardware UI animation
+        const hardwareCard = document.getElementById('card-visual');
+        if(hardwareCard) {
+            hardwareCard.style.top = '100%';
+            setTimeout(() => {
+                hardwareCard.style.display = 'none';
+            }, 1000);
+        }
+        
+        let displayStr = card;
+        if(card.length >= 12) {
+            displayStr = '**** **** **** ' + card.slice(-4);
+        } else if (card === 'admin') {
+            displayStr = 'ADMINISTRATOR';
+        }
+        document.getElementById('display-card-number').innerText = 'CARD: ' + displayStr;
+        
+        document.getElementById('screen-insert-card').style.display = 'none';
+        document.getElementById('screen-enter-pin').style.display = 'block';
+        currentStep = 'pin';
+    }
+
+    function updatePinDisplay() {
+        for(let i=1; i<=4; i++) {
+            const dot = document.getElementById('pin-dot-' + i);
+            if(i <= pin.length) {
+                dot.innerText = '●';
+            } else {
+                dot.innerText = '_';
+            }
+        }
+    }
+
+    function resetLogin() {
+        atmSound('beep');
+        pin = '';
+        cardNumber = '';
+        updatePinDisplay();
+        document.getElementById('manual-card-input').value = '';
+        document.getElementById('screen-enter-pin').style.display = 'none';
+        document.getElementById('screen-insert-card').style.display = 'block';
+        currentStep = 'card';
+        
+        // Eject hardware card
+        const hardwareCard = document.getElementById('card-visual');
+        if(hardwareCard) {
+            hardwareCard.style.display = 'block';
+            setTimeout(() => {
+                hardwareCard.style.top = '-20px';
+            }, 50);
+        }
+    }
+
+    function submitLogin() {
+        atmSound('processing');
+        document.getElementById('screen-enter-pin').style.display = 'none';
+        document.getElementById('screen-authenticating').style.display = 'block';
+        
+        document.getElementById('hidden_card_number').value = cardNumber;
+        document.getElementById('hidden_pin').value = pin;
+        
+        setTimeout(() => {
+            document.getElementById('login-form').submit();
+        }, 1500);
+    }
+</script>
 {% endblock %}

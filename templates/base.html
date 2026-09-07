@@ -3,35 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATM System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>NEXUS ATM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/atm.css') }}">
+    <script>
+        const ATM_GLOBALS = {
+            isLoggedIn: {% if session.get('user_id') %}true{% else %}false{% endif %},
+            isAdmin: {% if session.get('is_admin') %}true{% else %}false{% endif %},
+            logoutUrl: "{{ url_for('logout') }}"
+        };
+    </script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>ATM Management System</h1>
-            {% if session.get('user_id') %}
-            <nav>
-                {% if not session.get('is_admin') %}
-                <a href="{{ url_for('dashboard') }}">Dashboard</a>
-                {% endif %}
-                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
-            </nav>
-            {% endif %}
-        </header>
-        
-        <main>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            
-            {% block content %}{% endblock %}
-        </main>
+    <div class="sound-toggle-container">
+        <label><input type="checkbox" id="sound-toggle"> Enable Sound</label>
     </div>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+    <div class="atm-machine">
+        <div class="atm-header">
+            <div class="bank-logo">
+                <span class="logo-icon">⬡</span> NEXUS BANK
+            </div>
+            <div class="atm-id">ATM-001</div>
+        </div>
+        
+        <div class="atm-screen-bezel">
+            <!-- Left hardware buttons -->
+            <div class="atm-side-buttons left">
+                <button class="atm-btn-hardware left-btn" id="btn-L1" tabindex="-1"><span class="arrow">▶</span></button>
+                <button class="atm-btn-hardware left-btn" id="btn-L2" tabindex="-1"><span class="arrow">▶</span></button>
+                <button class="atm-btn-hardware left-btn" id="btn-L3" tabindex="-1"><span class="arrow">▶</span></button>
+                <button class="atm-btn-hardware left-btn" id="btn-L4" tabindex="-1"><span class="arrow">▶</span></button>
+            </div>
+            
+            <div class="atm-screen-container">
+                <div class="atm-screen" id="atm-screen">
+                    <div class="screen-header">
+                        <div class="secure-indicator">🔒 SECURE CONNECTION</div>
+                        <div class="datetime" id="datetime-display"></div>
+                    </div>
+                    
+                    <div id="flash-messages-container" class="screen-alerts">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    
+                    <div class="screen-content" id="screen-content">
+                        {% block content %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right hardware buttons -->
+            <div class="atm-side-buttons right">
+                <button class="atm-btn-hardware right-btn" id="btn-R1" tabindex="-1"><span class="arrow">◀</span></button>
+                <button class="atm-btn-hardware right-btn" id="btn-R2" tabindex="-1"><span class="arrow">◀</span></button>
+                <button class="atm-btn-hardware right-btn" id="btn-R3" tabindex="-1"><span class="arrow">◀</span></button>
+                <button class="atm-btn-hardware right-btn" id="btn-R4" tabindex="-1"><span class="arrow">◀</span></button>
+            </div>
+        </div>
+        
+        <div class="atm-lower-panel">
+            <div class="atm-slots">
+                <div class="receipt-slot-container">
+                    <div class="slot-label">RECEIPT</div>
+                    <div class="slot receipt-slot" id="receipt-slot">
+                        <div class="receipt-paper" id="receipt-paper"></div>
+                    </div>
+                </div>
+                
+                <div class="card-slot-container">
+                    <div class="slot-label">CARD</div>
+                    <div class="slot card-slot" id="card-slot">
+                        <div class="card-visual" id="card-visual">
+                            <div class="card-chip"></div>
+                        </div>
+                        <div class="slot-light" id="card-slot-light"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="atm-keypad">
+                <div class="keys-grid">
+                    <button class="key-num" data-val="1">1<br><span>QZ</span></button>
+                    <button class="key-num" data-val="2">2<br><span>ABC</span></button>
+                    <button class="key-num" data-val="3">3<br><span>DEF</span></button>
+                    <button class="key-action cancel" data-action="cancel">CANCEL</button>
+                    
+                    <button class="key-num" data-val="4">4<br><span>GHI</span></button>
+                    <button class="key-num" data-val="5">5<br><span>JKL</span></button>
+                    <button class="key-num" data-val="6">6<br><span>MNO</span></button>
+                    <button class="key-action clear" data-action="clear">CLEAR</button>
+                    
+                    <button class="key-num" data-val="7">7<br><span>PRS</span></button>
+                    <button class="key-num" data-val="8">8<br><span>TUV</span></button>
+                    <button class="key-num" data-val="9">9<br><span>WXY</span></button>
+                    <button class="key-action enter" data-action="enter">ENTER</button>
+                    
+                    <button class="key-empty"></button>
+                    <button class="key-num" data-val="0">0</button>
+                    <button class="key-empty"></button>
+                    <button class="key-empty"></button>
+                </div>
+            </div>
+            
+            <div class="cash-dispenser-container">
+                <div class="slot-label">CASH DISPENSER</div>
+                <div class="slot cash-slot" id="cash-slot">
+                    <div class="cash-notes" id="cash-notes"></div>
+                    <div class="slot-light" id="cash-slot-light"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden audio API logic will be in atm.js -->
+    <script src="{{ url_for('static', filename='js/atm.js') }}"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

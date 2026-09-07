@@ -1,18 +1,135 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="form-box">
-    <h2>Money Transfer</h2>
-    <form method="POST">
-        <div class="form-group">
-            <label>Target Card Number</label>
-            <input type="text" name="target_card" required>
+<div id="transfer-flow">
+    <!-- Step 1: Target Account -->
+    <div id="step-account" class="atm-transaction-screen text-center active">
+        <h2>MONEY TRANSFER</h2>
+        <p>ENTER RECIPIENT ACCOUNT/CARD NUMBER</p>
+        <div class="mt-4">
+            <input type="text" id="target-account-input" class="atm-input text-center" readonly placeholder="Enter Account #">
         </div>
-        <div class="form-group">
-            <label>Amount ($)</label>
-            <input type="number" step="0.01" name="amount" min="1" required>
+        <div class="menu-options mt-4" style="position: absolute; bottom: 20px; width: 100%;">
+            <div class="menu-row" style="justify-content: space-between; padding: 0 20px;">
+                <a href="{{ url_for('dashboard') }}" class="menu-btn l-btn cancel-btn">[ CANCEL ]</a>
+                <button class="menu-btn r-btn" onclick="nextStep('amount')">[ CONTINUE ]</button>
+            </div>
         </div>
-        <button type="submit" class="btn">Transfer</button>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
-    </form>
+    </div>
+
+    <!-- Step 2: Amount -->
+    <div id="step-amount" class="atm-transaction-screen text-center" style="display:none;">
+        <h2>MONEY TRANSFER</h2>
+        <p>ENTER TRANSFER AMOUNT</p>
+        <div class="mt-4">
+            <div class="amount-input-container">
+                <span class="currency">₹</span>
+                <input type="text" id="transfer-amount-input" class="atm-input text-right" readonly value="0">
+            </div>
+        </div>
+        <div class="menu-options mt-4" style="position: absolute; bottom: 20px; width: 100%;">
+            <div class="menu-row" style="justify-content: space-between; padding: 0 20px;">
+                <button class="menu-btn l-btn cancel-btn" onclick="nextStep('account')">[ BACK ]</button>
+                <button class="menu-btn r-btn" onclick="nextStep('confirm')">[ CONTINUE ]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Confirm -->
+    <div id="step-confirm" class="atm-transaction-screen text-center" style="display:none;">
+        <h2>CONFIRM TRANSFER</h2>
+        <div class="receipt-box text-left mt-2 mx-auto" style="width: 80%; padding: 15px; border: 1px solid var(--atm-text); background: rgba(0,255,204,0.1);">
+            <p><strong>RECIPIENT:</strong> <span id="confirm-account"></span></p>
+            <p><strong>AMOUNT:</strong> ₹<span id="confirm-amount"></span></p>
+            <p><strong>FEE:</strong> ₹0.00</p>
+        </div>
+        <div class="menu-options mt-4" style="position: absolute; bottom: 20px; width: 100%;">
+            <div class="menu-row" style="justify-content: space-between; padding: 0 20px;">
+                <button class="menu-btn l-btn cancel-btn" onclick="nextStep('amount')">[ BACK ]</button>
+                <button class="menu-btn r-btn" onclick="submitTransfer()">[ CONFIRM ]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing -->
+    <div id="step-processing" class="atm-transaction-screen text-center" style="display:none;">
+        <div class="spinner mt-4"></div>
+        <h2 class="mt-4 blinking-text">PROCESSING...</h2>
+    </div>
 </div>
+
+<form id="transfer-form" method="POST" action="{{ url_for('transfer') }}" style="display:none;">
+    <input type="hidden" name="target_card" id="hidden_target">
+    <input type="hidden" name="amount" id="hidden_amount">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentStep = 'account';
+    let targetAccount = '';
+    let transferAmount = '0';
+
+    window.addEventListener('atm-key', (e) => {
+        const val = e.detail.key;
+        if(currentStep === 'account') {
+            if(/[0-9a-zA-Z]/.test(val)) {
+                if(targetAccount.length < 20) targetAccount += val;
+                document.getElementById('target-account-input').value = targetAccount;
+            } else if (val === 'CLEAR') {
+                targetAccount = '';
+                document.getElementById('target-account-input').value = targetAccount;
+            } else if (val === 'CANCEL') {
+                window.location.href = "{{ url_for('dashboard') }}";
+            } else if (val === 'ENTER') {
+                nextStep('amount');
+            }
+        } else if (currentStep === 'amount') {
+            if(/[0-9]/.test(val)) {
+                if(transferAmount === "0") transferAmount = val;
+                else if(transferAmount.length < 6) transferAmount += val;
+                document.getElementById('transfer-amount-input').value = transferAmount;
+            } else if (val === 'CLEAR') {
+                transferAmount = "0";
+                document.getElementById('transfer-amount-input').value = transferAmount;
+            } else if (val === 'CANCEL') {
+                nextStep('account');
+            } else if (val === 'ENTER') {
+                nextStep('confirm');
+            }
+        } else if (currentStep === 'confirm') {
+            if (val === 'CANCEL') nextStep('amount');
+            else if (val === 'ENTER') submitTransfer();
+        }
+    });
+
+    function nextStep(step) {
+        atmSound('beep');
+        if(step === 'amount' && targetAccount.length === 0) return atmSound('error');
+        if(step === 'confirm' && parseInt(transferAmount) <= 0) return atmSound('error');
+
+        document.getElementById('step-account').style.display = 'none';
+        document.getElementById('step-amount').style.display = 'none';
+        document.getElementById('step-confirm').style.display = 'none';
+        document.getElementById('step-' + step).style.display = 'block';
+        currentStep = step;
+
+        if(step === 'confirm') {
+            document.getElementById('confirm-account').innerText = targetAccount;
+            document.getElementById('confirm-amount').innerText = transferAmount;
+        }
+    }
+
+    function submitTransfer() {
+        atmSound('processing');
+        document.getElementById('step-confirm').style.display = 'none';
+        document.getElementById('step-processing').style.display = 'block';
+        
+        document.getElementById('hidden_target').value = targetAccount;
+        document.getElementById('hidden_amount').value = transferAmount;
+        
+        setTimeout(() => {
+            document.getElementById('transfer-form').submit();
+        }, 2000);
+    }
+</script>
 {% endblock %}

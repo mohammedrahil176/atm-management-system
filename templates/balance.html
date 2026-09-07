@@ -1,8 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="center-content">
-    <h2>Current Balance</h2>
-    <div class="balance-amount">${{ "%.2f"|format(balance) }}</div>
-    <a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+<div class="atm-transaction-screen text-center">
+    <h2>BALANCE INQUIRY</h2>
+    <div class="mt-4">
+        <p>AVAILABLE BALANCE</p>
+        <div class="amount-display large mt-2">₹{{ "{:,.2f}".format(balance) }}</div>
+    </div>
+    <div class="mt-4">
+        <p>LEDGER BALANCE</p>
+        <div class="amount-display small mt-1">₹{{ "{:,.2f}".format(balance) }}</div>
+    </div>
+    
+    <div class="menu-options mt-4" style="position: absolute; bottom: 20px; width: 100%;">
+        <div class="menu-row exit-row" style="justify-content: flex-end; padding-right: 20px;">
+            <a href="{{ url_for('dashboard') }}" class="menu-btn r-btn">[ RETURN TO MENU ]</a>
+        </div>
+    </div>
 </div>
 {% endblock %}
