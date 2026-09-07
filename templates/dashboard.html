@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard">
+    <h2>Welcome, {{ session.name }}</h2>
+    <div class="grid">
+        <a href="{{ url_for('balance') }}" class="card">Balance Inquiry</a>
+        <a href="{{ url_for('withdraw') }}" class="card">Cash Withdrawal</a>
+        <a href="{{ url_for('deposit') }}" class="card">Cash Deposit</a>
+        <a href="{{ url_for('transfer') }}" class="card">Money Transfer</a>
+        <a href="{{ url_for('statement') }}" class="card">Mini Statement</a>
+        <a href="{{ url_for('change_pin') }}" class="card">Change PIN</a>
+    </div>
+</div>
+{% endblock %}

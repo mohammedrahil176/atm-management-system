@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="login-box">
+    <h2>Welcome to ATM</h2>
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+            <label>Card Number</label>
+            <input type="text" name="card_number" required pattern="[0-9a-zA-Z]+" title="Alphanumeric card number">
+        </div>
+        <div class="form-group">
+            <label>PIN</label>
+            <input type="password" name="pin" required>
+        </div>
+        <button type="submit" class="btn">Login</button>
+    </form>
+</div>
+{% endblock %}

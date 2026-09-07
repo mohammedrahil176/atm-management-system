@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-box">
+    <h2>Change PIN</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label>Current PIN</label>
+            <input type="password" name="old_pin" required>
+        </div>
+        <div class="form-group">
+            <label>New PIN</label>
+            <input type="password" name="new_pin" required>
+        </div>
+        <div class="form-group">
+            <label>Confirm New PIN</label>
+            <input type="password" name="confirm_pin" required>
+        </div>
+        <button type="submit" class="btn">Change PIN</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

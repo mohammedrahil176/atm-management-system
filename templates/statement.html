@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="statement-box">
+    <h2>Mini Statement</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Transaction Type</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr>
+                <td>{{ t.timestamp }}</td>
+                <td>{{ t.type }}</td>
+                <td>${{ "%.2f"|format(t.amount) }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3">No transactions found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+</div>
+{% endblock %}
